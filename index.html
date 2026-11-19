@@ -632,10 +632,10 @@
       border-top: var(--card-border);
     }
     .qr-box {
-      width: 92px;
-      height: 92px;
+      width: 144px;
+      height: 144px;
       flex-shrink: 0;
-      background: var(--surface-container-low);
+      background: #fff;
       border: 1px solid var(--outline);
       border-radius: var(--rounded);
       padding: 4px;
@@ -643,14 +643,20 @@
       align-items: center;
       justify-content: center;
     }
-    .qr-box svg {
+    .qr-box img {
       width: 100%;
       height: 100%;
       display: block;
     }
+    a.qr-box:focus-visible {
+      outline: 3px solid var(--secondary);
+      outline-offset: 3px;
+    }
     .qr-meta {
       display: grid;
       gap: 2px;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
     .qr-title {
       font-weight: 700;
@@ -1379,47 +1385,6 @@
   <api-shim></api-shim>
 
   <script>
-    // --- Deterministic QR-like Vector Generator (Grounded per-book matrix visual, zero external fetches) ---
-    function generateQrSvg(seedText, labelText) {
-      let hash = 2166136261;
-      for (let i = 0; i < seedText.length; i++) {
-        hash ^= seedText.charCodeAt(i);
-        hash = Math.imul(hash, 16777619);
-      }
-      const size = 21;
-      const cells = [];
-      for (let r = 0; r < size; r++) {
-        cells[r] = [];
-        for (let c = 0; c < size; c++) {
-          const inTopLeft = r < 7 && c < 7;
-          const inTopRight = r < 7 && c >= size - 7;
-          const inBottomLeft = r >= size - 7 && c < 7;
-          if (inTopLeft || inTopRight || inBottomLeft) {
-            const lr = inBottomLeft ? r - (size - 7) : r;
-            const lc = inTopRight ? c - (size - 7) : c;
-            const isOuter = lr === 0 || lr === 6 || lc === 0 || lc === 6;
-            const isInner = lr >= 2 && lr <= 4 && lc >= 2 && lc <= 4;
-            cells[r][c] = isOuter || isInner ? 1 : 0;
-          } else if (r === 6 || c === 6) {
-            cells[r][c] = (r + c) % 2 === 0 ? 1 : 0;
-          } else {
-            hash ^= (r * 31 + c * 17);
-            hash = Math.imul(hash, 16777619);
-            cells[r][c] = (hash >>> 0) % 2 === 0 ? 1 : 0;
-          }
-        }
-      }
-      let rects = ``;
-      for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-          if (cells[r][c] === 1) {
-            rects += `<rect x="${c}" y="${r}" width="1" height="1" fill="currentColor"/>`;
-          }
-        }
-      }
-      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" role="img" aria-label="${labelText}">${rects}</svg>`;
-    }
-
     // --- 1. Philosophy Data & Interaction ---
     const philosophyData = {
       shakarim: {
@@ -1553,9 +1518,10 @@
         annotation: `Заманауи қалалық жасөспірім Аминаның әлеуметтік желідегі танымалдылық пен шынайы өмір құндылықтары арасындағы ішкі ізденісі баяндалады.`,
         adalValue: `Кейіпкер виртуалды ортадағы жасанды абырой мен хайптан бас тартып, цифрлық кеңістіктегі ар-ождан тазалығы мен медиасауаттылық үлгісін көрсетеді.`,
         question: `Әлеуметтік желідегі танымалдылық үшін ар-ожданыңнан аттайтын сәт туса, қандай таңдау жасар едің?`,
-        qrSeed: `ADAL-AZAMAT-ZAURE-TOREKHANOVA-AMINA-SERIES`,
+        qrUrl: `https://almatykitap.kz/upload/files/74466_814141_16.pdf`,
+        qrImage: `assets/qr/amina.svg`,
         qrCodeId: `QR-01 · АМИНА СЕРИЯСЫ`,
-        qrDesc: `Электронды және аудио нұсқасына өту үшін сканерлеңіз`
+        qrDesc: `PDF нұсқасын ашу үшін сканерлеңіз`
       },
       {
         id: `tau-qusy`,
@@ -1566,9 +1532,10 @@
         annotation: `Туған өлке табиғатын, таулы аймақтың экожүйесі мен тарихи-мәдени мұрасын қорғау жолындағы жасөспірімдердің батыл іс-әрекеті суреттеледі.`,
         adalValue: `Жас кейіпкерлер табиғи ресурстарды талан-таражға салуға қарсы тұрып, туған жер алдындағы азаматтық жауапкершілік пен ұжымдық ынтымақты дәлелдейді.`,
         question: `Өз аулаң мен мектебіңде туған табиғатты қорғау үшін қандай нақты іс атқара аласың?`,
-        qrSeed: `ADAL-AZAMAT-ELDOS-TOKTARBAY-TAU-QUSY`,
+        qrUrl: `https://youtu.be/DCwPeSj_lCM?si=8MN8uCveOnwqSFiq`,
+        qrImage: `assets/qr/tau-qusy.svg`,
         qrCodeId: `QR-02 · ТАУ ҚҰСЫ`,
-        qrDesc: `Шығарманың толық мәтініне өту үшін сканерлеңіз`
+        qrDesc: `YouTube бейнесін ашу үшін сканерлеңіз`
       },
       {
         id: `wonder`,
@@ -1579,9 +1546,10 @@
         annotation: `Бет-әлпетінде ерекшелігі бар Август (Огги) есімді баланың мектеп ортасына бейімделуі мен сыныптастарының моральдық есею жолы баяндалады.`,
         adalValue: `Саммер мен Джек Уиллдің көпшілік қысымына қарамай Оггиді қолдауы — өзгешелікке құрметпен қарау мен буллингке қарсы тұрудың жарқын үлгісі.`,
         question: `Сыныптасың өзгелерден ерекше болса, оған «Адал азамат» ретінде қалай қолдау көрсетер едің?`,
-        qrSeed: `ADAL-AZAMAT-RJ-PALACIO-WONDER-TANGAZHAYIP`,
+        qrUrl: `https://kk.litlovers.com/оқуға-арналған-нұсқаулықтар/қарапайым-көркем-әдебиет/керемет-сарай?showall=1`,
+        qrImage: `assets/qr/wonder.svg`,
         qrCodeId: `QR-03 · ТАҢҒАЖАЙЫП`,
-        qrDesc: `Аударма нұсқасы мен оқырман гидіне өту үшін сканерлеңіз`
+        qrDesc: `Оқырман нұсқаулығын ашу үшін сканерлеңіз`
       },
       {
         id: `aiymbetov`,
@@ -1592,9 +1560,10 @@
         annotation: `Мегаполис пен аула өміріндегі жасөспірімдердің шым-шытырық оқиғаларға тап болып, шындықты іздеу барысындағы әділдік жолы суреттеледі.`,
         adalValue: `Кейіпкерлер мектептегі және ортадағы заңбұзушылықты өз бетінше кек алумен емес, заңды құрметтеу, намыс пен ар-ождан аясында шешеді.`,
         question: `Қиын сәтте досыңның қателігін жасырасың ба, әлде шындықты айтуға батылдығың жете ме?`,
-        qrSeed: `ADAL-AZAMAT-MADI-AIYMBETOV-DETECTIVE`,
+        qrUrl: `https://adebiportal.kz/kz/authors/book/1215`,
+        qrImage: `assets/qr/aiymbetov.svg`,
         qrCodeId: `QR-04 · МӘДИ АЙЫМБЕТОВ`,
-        qrDesc: `Кітап картасы мен талдау нұсқасына өту үшін сканерлеңіз`
+        qrDesc: `Әдебиет порталына өту үшін сканерлеңіз`
       }
     ];
 
@@ -1620,7 +1589,8 @@
       let html = ``;
       list.forEach((book, idx) => {
         const val = savedReflections[book.id] || ``;
-        const qrMarkup = generateQrSvg(book.qrSeed, `${book.author} — ${book.title} QR-коды`);
+        const qrLabel = escapeHtml(`${book.author} — ${book.title} QR-коды`);
+        const qrMarkup = `<a class="qr-box" href="${escapeHtml(book.qrUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${qrLabel}: материалды ашу"><img src="${book.qrImage}" alt="${qrLabel}" width="144" height="144"></a>`;
         html += `
           <article class="book-card">
             <div class="book-body">
@@ -1658,13 +1628,12 @@
             </div>
 
             <div class="qr-footer">
-              <div class="qr-box" title="${book.qrCodeId}">
-                ${qrMarkup}
-              </div>
+              ${qrMarkup}
               <div class="qr-meta">
                 <span class="qr-code-id">${book.qrCodeId}</span>
                 <span class="qr-title">${book.author} — ${book.title}</span>
                 <span class="qr-caption">${book.qrDesc}</span>
+                <a class="qr-caption" href="${escapeHtml(book.qrUrl)}" target="_blank" rel="noopener noreferrer">Материалды ашу</a>
               </div>
             </div>
           </article>
