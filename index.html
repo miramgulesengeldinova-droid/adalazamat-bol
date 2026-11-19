@@ -1,0 +1,1975 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="narrative">
+  <meta name="design-style" content="briefing">
+  <title>Адал азамат: Көркем әдебиеттегі образ және интерактивті веб-каталог</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Noto+Serif:wght@500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* Page and surfaces: warm stone-white paper */
+      --background: #faf9f5;
+      --surface-container-low: #ffffff;
+      --surface-container: #f1efe8;
+      --surface-container-high: #e6e2d6;
+
+      /* Ink */
+      --on-surface: #17181a;
+      --on-surface-variant: #56585c;
+
+      /* Rules */
+      --outline: #17181a;
+      --outline-variant: #dedad0;
+
+      /* Accents */
+      --primary: #17181a;
+      --on-primary: #faf9f5;
+      --primary-container: #f2b705;
+      --on-primary-container: #17181a;
+      --secondary: #1f4e5f;
+      --secondary-soft: #e6eff2;
+      --tertiary: #785008;
+      --tertiary-soft: #f5e6c4;
+      --error: #b42318;
+      --on-error: #ffffff;
+      --chart-border: #ffffff;
+
+      /* Data series */
+      --data-1: #1f4e5f;
+      --data-2: #d99000;
+      --data-3: #2b6e52;
+      --data-4: #b84a39;
+      --data-context: #c4bfb2;
+
+      /* Semantic */
+      --positive: #2b6e52;
+      --positive-soft: #e3efe9;
+      --warning: #785008;
+      --warning-soft: #f5e6c4;
+      --focus: #1f4e5f;
+
+      /* Fonts (Cyrillic-safe pairs) */
+      --font-headline: 'Source Serif 4', 'Noto Serif', serif;
+      --font-body: 'Plus Jakarta Sans', 'Noto Sans', sans-serif;
+      --font-label: 'Geist Mono', 'Noto Sans', monospace;
+
+      /* Shape */
+      --rounded: 0.25rem;
+      --rounded-lg: 0.375rem;
+      --rounded-full: 0.25rem;
+
+      /* Effects */
+      --section-rule: 1.5px solid var(--outline);
+      --card-border: 1px solid var(--outline-variant);
+      --badge-radius: 2px;
+      --heading-tracking: -0.015em;
+      --label-tracking: 0.04em;
+
+      /* Type scale (Narrative) */
+      --display-size: clamp(2.15rem, 1.3rem + 3.2vw, 3.75rem);
+      --headline-size: clamp(1.65rem, 1.15rem + 1.8vw, 2.35rem);
+      --subhead-size: clamp(1.15rem, 1.05rem + 0.45vw, 1.375rem);
+      --body-size: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+      --label-size: clamp(0.75rem, 0.72rem + 0.12vw, 0.8125rem);
+
+      /* Spacing scale */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+      --space-3xl: 5.5rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; overflow-x: clip; margin: 0; padding: 0; }
+    body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.62;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { position: static !important; }
+    button, input, select, textarea { font-family: inherit; }
+
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .page-shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-2xl);
+    }
+    .page-shell * { min-width: 0; }
+
+    /* Top editorial masthead & inline anchor nav */
+    .masthead {
+      border-bottom: var(--section-rule);
+      padding-bottom: var(--space-md);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .masthead-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+    .dossier-bar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      border-bottom: var(--section-rule);
+      padding-bottom: var(--space-sm);
+      margin-bottom: var(--space-md);
+    }
+    .dossier-pill {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: var(--label-tracking);
+      text-transform: uppercase;
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--badge-radius);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .dossier-meta {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      letter-spacing: 0.02em;
+    }
+
+    .quick-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      border: var(--card-border);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--rounded);
+      transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+    }
+    .nav-link:hover {
+      background: var(--surface-container);
+      border-color: var(--outline);
+    }
+
+    /* Hero section */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+      gap: var(--space-xl);
+      align-items: start;
+    }
+    .hero-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--display-size);
+      line-height: 1.08;
+      letter-spacing: var(--heading-tracking);
+      color: var(--on-surface);
+      margin: 0;
+    }
+    .hero-standfirst {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: var(--subhead-size);
+      line-height: 1.4;
+      color: var(--secondary);
+      margin: var(--space-md) 0;
+    }
+    .hero-copy {
+      max-width: 65ch;
+      color: var(--on-surface);
+      margin: 0 0 var(--space-lg) 0;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-lg);
+      border-radius: var(--rounded);
+      font-weight: 600;
+      font-size: 0.9375rem;
+      cursor: pointer;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: background-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+    }
+    .btn-primary:hover { background: var(--secondary); border-color: var(--secondary); }
+    .btn-secondary {
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      border: 1px solid var(--outline);
+    }
+    .btn-secondary:hover { background: var(--surface-container); }
+    .reset-btn { min-height: 44px; padding: var(--space-xs) var(--space-md); font-size: 0.8125rem; }
+    .btn-gold {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      border-color: var(--outline);
+    }
+    .btn-gold:hover { background: var(--tertiary-soft); }
+
+    /* Hero metrics & compass panel */
+    .hero-panel {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-top: 3px solid var(--outline);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .panel-kicker {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: var(--card-border);
+      padding-bottom: var(--space-sm);
+    }
+    .hero-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-md);
+    }
+    .stat-tile {
+      background: var(--surface-container);
+      padding: var(--space-md);
+      border-radius: var(--rounded);
+      border-left: 3px solid var(--secondary);
+    }
+    .stat-value {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 1.85rem;
+      line-height: 1.1;
+      font-variant-numeric: lining-nums tabular-nums;
+      color: var(--on-surface);
+    }
+    .stat-label {
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+      margin-top: var(--space-xs);
+    }
+
+    .compass-pillars {
+      display: grid;
+      gap: var(--space-sm);
+    }
+    .compass-row {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-sm);
+      padding: var(--space-sm) 0;
+      border-bottom: var(--card-border);
+    }
+    .compass-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .index-num {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: var(--label-size);
+      color: var(--secondary);
+      background: var(--secondary-soft);
+      padding: 2px 6px;
+      border-radius: var(--badge-radius);
+      flex-shrink: 0;
+    }
+
+    /* Section typography */
+    .section-block {
+      display: grid;
+      gap: var(--space-lg);
+    }
+    .section-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--headline-size);
+      line-height: 1.15;
+      letter-spacing: var(--heading-tracking);
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .section-lead {
+      font-weight: 500;
+      color: var(--on-surface-variant);
+      max-width: 68ch;
+      margin: var(--space-xs) 0 0 0;
+    }
+
+    /* Philosophy interactive section */
+    .philosophy-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+    .tab-btn {
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-lg);
+      border-radius: var(--rounded);
+      border: var(--card-border);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      font-weight: 600;
+      font-size: 0.9375rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+    }
+    .tab-btn:hover { background: var(--surface-container); }
+    .tab-btn[aria-selected="true"] {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+    }
+
+    .philosophy-stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: var(--space-lg);
+      align-items: stretch;
+    }
+    .figure-card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+      align-content: start;
+    }
+    .aside-box {
+      background: var(--surface-container);
+      border-top: var(--section-rule);
+      border-radius: 0 0 var(--rounded-lg) var(--rounded-lg);
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+      align-content: start;
+    }
+    .triad-list {
+      display: grid;
+      gap: var(--space-sm);
+    }
+    .triad-item {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      display: grid;
+      gap: var(--space-xs);
+      transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+    }
+    .triad-item:hover { border-color: var(--secondary); background: var(--secondary-soft); }
+    .triad-item.is-active {
+      border-color: var(--outline);
+      border-left: 4px solid var(--primary-container);
+      background: var(--surface-container-low);
+    }
+    .triad-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      font-weight: 700;
+      color: var(--on-surface);
+    }
+    .triad-tag {
+      font-family: var(--font-label);
+      font-size: 0.75rem;
+      background: var(--tertiary-soft);
+      color: var(--tertiary);
+      padding: 2px 8px;
+      border-radius: var(--badge-radius);
+      font-weight: 600;
+    }
+
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      overflow: hidden;
+    }
+    .matrix-table th {
+      text-align: left;
+      padding: var(--space-md);
+      background: var(--surface-container);
+      border-bottom: var(--section-rule);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface);
+    }
+    .matrix-table td {
+      padding: var(--space-md);
+      border-bottom: var(--card-border);
+      vertical-align: top;
+      font-size: 0.9375rem;
+    }
+    .matrix-table tr:last-child td { border-bottom: 0; }
+
+    /* Book Catalog Section */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      background: var(--surface-container);
+      padding: var(--space-md);
+      border-radius: var(--rounded-lg);
+      border-top: var(--section-rule);
+    }
+    .filter-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+    .filter-pill {
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--rounded);
+      border: var(--card-border);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .filter-pill[aria-pressed="true"] {
+      background: var(--secondary);
+      color: var(--on-primary);
+      border-color: var(--secondary);
+    }
+
+    .catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+      gap: var(--space-lg);
+    }
+    .book-card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+      align-content: space-between;
+      transition: border-color var(--dur-short) var(--ease-out);
+    }
+    .book-card:hover { border-color: var(--outline); }
+    .book-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-md);
+      border-bottom: var(--card-border);
+      padding-bottom: var(--space-md);
+    }
+    .book-vector {
+      display: inline-block;
+      background: var(--tertiary-soft);
+      color: var(--tertiary);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--badge-radius);
+      margin-bottom: var(--space-xs);
+    }
+    .book-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 1.45rem;
+      line-height: 1.2;
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .book-author {
+      font-weight: 600;
+      color: var(--secondary);
+      margin-top: var(--space-xs);
+      font-size: 0.95rem;
+    }
+
+    .book-body {
+      display: grid;
+      gap: var(--space-md);
+    }
+    .book-annotation {
+      margin: 0;
+      font-size: 0.95rem;
+      color: var(--on-surface);
+    }
+    .book-value-box {
+      background: var(--surface-container);
+      padding: var(--space-md);
+      border-radius: var(--rounded);
+      border-left: 3px solid var(--secondary);
+      font-size: 0.9rem;
+    }
+
+    /* Reflective Question Accordion/Box */
+    .reflection-box {
+      border: 1px dashed var(--secondary);
+      background: var(--secondary-soft);
+      padding: var(--space-md);
+      border-radius: var(--rounded);
+      display: grid;
+      gap: var(--space-sm);
+    }
+    .reflection-label {
+      font-family: var(--font-label);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .reflection-q {
+      font-weight: 600;
+      font-size: 0.9375rem;
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .reflection-input-wrap {
+      display: grid;
+      gap: var(--space-xs);
+    }
+    .reflection-input-wrap label {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--on-surface-variant);
+    }
+    .reflection-textarea {
+      width: 100%;
+      min-height: 64px;
+      padding: var(--space-sm);
+      border-radius: var(--rounded);
+      border: 1px solid var(--outline-variant);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      font-size: 0.875rem;
+      resize: vertical;
+    }
+
+    /* QR Code container inside each book card */
+    .qr-footer {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding-top: var(--space-md);
+      border-top: var(--card-border);
+    }
+    .qr-box {
+      width: 92px;
+      height: 92px;
+      flex-shrink: 0;
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline);
+      border-radius: var(--rounded);
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qr-box svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .qr-meta {
+      display: grid;
+      gap: 2px;
+    }
+    .qr-title {
+      font-weight: 700;
+      font-size: 0.875rem;
+      color: var(--on-surface);
+    }
+    .qr-caption {
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+    }
+    .qr-code-id {
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      color: var(--secondary);
+    }
+
+    /* Research Infographics Section */
+    .research-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-lg);
+    }
+    .chart-card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .chart-title {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: 1.25rem;
+      margin: 0;
+    }
+    .chart-sub {
+      font-family: var(--font-label);
+      font-size: 0.78rem;
+      color: var(--on-surface-variant);
+      margin: var(--space-xs) 0 0 0;
+    }
+    .chart-wrap {
+      position: relative;
+      min-height: 260px;
+      width: 100%;
+    }
+    .chart-takeaway {
+      background: var(--surface-container);
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--rounded);
+      font-size: 0.875rem;
+      color: var(--on-surface);
+      border-left: 3px solid var(--primary-container);
+    }
+
+    /* Self-assessment Checklist & Express Test */
+    .assessment-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+    .checklist-card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-md);
+      padding: var(--space-md);
+      background: var(--surface-container);
+      border-radius: var(--rounded);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+    }
+    .check-item:hover { border-color: var(--outline-variant); }
+    .check-item.is-checked {
+      background: var(--positive-soft);
+      border-color: var(--positive);
+    }
+    .check-item input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      margin-top: 2px;
+      accent-color: var(--secondary);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .check-text {
+      display: grid;
+      gap: 2px;
+    }
+    .check-title { font-weight: 600; font-size: 0.95rem; }
+    .check-sub { font-size: 0.8125rem; color: var(--on-surface-variant); }
+
+    .score-panel {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-top: 3px solid var(--secondary);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .score-ring-wrap {
+      display: flex;
+      align-items: center;
+      gap: var(--space-lg);
+    }
+    .score-badge {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-headline);
+      font-weight: 700;
+      flex-shrink: 0;
+      border: 2px solid var(--outline);
+    }
+    .score-num { font-size: 1.75rem; line-height: 1; }
+    .score-den { font-size: 0.75rem; font-family: var(--font-label); }
+    .progress-track {
+      height: 10px;
+      background: var(--surface-container-high);
+      border-radius: var(--rounded);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--secondary);
+      transition: width var(--dur-short) var(--ease-out);
+    }
+    .quiz-block {
+      border-top: var(--card-border);
+      padding-top: var(--space-md);
+      display: grid;
+      gap: var(--space-sm);
+    }
+    .quiz-q {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin: 0;
+    }
+    .quiz-options {
+      display: grid;
+      gap: var(--space-xs);
+    }
+    .quiz-opt-btn {
+      text-align: left;
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--rounded);
+      border: var(--card-border);
+      background: var(--surface-container);
+      color: var(--on-surface);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+    }
+    .quiz-opt-btn:hover { background: var(--surface-container-high); }
+    .quiz-opt-btn.is-selected {
+      background: var(--secondary);
+      color: var(--on-primary);
+      border-color: var(--secondary);
+    }
+
+    /* Practical Modules (Case-study, School Library, Reading Map) WITHOUT QR codes, WITH Telegram Bot CTA */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-lg);
+    }
+    .module-card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-top: 3px solid var(--secondary);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+      align-content: space-between;
+    }
+    .module-head {
+      display: grid;
+      gap: var(--space-xs);
+    }
+    .module-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 1.3rem;
+      margin: 0;
+    }
+    .module-list {
+      margin: 0;
+      padding-left: var(--space-md);
+      display: grid;
+      gap: var(--space-xs);
+      font-size: 0.9rem;
+      color: var(--on-surface-variant);
+    }
+    .bot-cta-box {
+      background: var(--surface-container);
+      border: var(--card-border);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      display: grid;
+      gap: var(--space-sm);
+    }
+    .bot-btn {
+      width: 100%;
+      background: var(--secondary);
+      color: var(--on-primary);
+      border: 1px solid var(--secondary);
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--rounded);
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .bot-btn:hover { background: var(--primary); border-color: var(--primary); }
+    .bot-feedback {
+      font-size: 0.8125rem;
+      color: var(--secondary);
+      background: var(--secondary-soft);
+      padding: var(--space-sm);
+      border-radius: var(--rounded);
+      display: none;
+    }
+    .bot-feedback.is-visible { display: block; }
+
+    /* Footer */
+    .editorial-footer {
+      border-top: var(--section-rule);
+      padding-top: var(--space-lg);
+      padding-bottom: var(--space-xl);
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      gap: var(--space-lg);
+      font-size: 0.875rem;
+      color: var(--on-surface-variant);
+    }
+    .status-toast {
+      font-size: 0.8125rem;
+      color: var(--positive);
+      font-weight: 600;
+      min-height: 1.25em;
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid,
+      .philosophy-stage,
+      .research-grid,
+      .assessment-grid,
+      .modules-grid,
+      .editorial-footer {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 640px) {
+      .page-shell { padding: var(--space-md); gap: var(--space-xl); }
+      .hero-stat-grid { grid-template-columns: 1fr; }
+      .qr-footer { flex-direction: column; align-items: flex-start; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <!-- MASTHEAD -->
+    <header class="masthead">
+      <div class="dossier-bar">
+        <span class="dossier-pill">АДАЛ АЗАМАТ · ВЕБ-КАТАЛОГ</span>
+        <span class="dossier-meta">ҒЫЛЫМИ ЖОБА | ҚАЗАҚ ӘДЕБИЕТІ | YOUNG ADULT ПРОЗАСЫ · 2026</span>
+      </div>
+      <div class="masthead-top">
+        <div class="dossier-meta">№215 ЖББМ, Бостандық ауданы, Алматы · Автор: Махсед Іңкәр</div>
+        <nav class="quick-nav" aria-label="Бөлімдерге өту">
+          <a class="nav-link" href="#philosophy">Абай мен Шәкәрім</a>
+          <a class="nav-link" href="#catalog">Кітаптар каталогы</a>
+          <a class="nav-link" href="#research">Зерттеу деректері</a>
+          <a class="nav-link" href="#checklist">Өзін-өзі бағалау</a>
+          <a class="nav-link" href="#practice">Практикалық блоктар</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- 1. HERO / БАСТЫ БЕТ -->
+    <section id="hero" class="hero-grid" aria-labelledby="hero-heading">
+      <div>
+        <div class="dossier-bar">
+          <span class="dossier-pill">БАСТЫ БЕТ</span>
+          <span class="dossier-meta">ЗАМАНАУИ КІТАПТАР — СЕНІҢ ӨМІРЛІК МОРАЛЬДЫҚ КОМПАСЫҢ</span>
+        </div>
+        <h1 id="hero-heading" class="hero-title">Заманауи кітаптар — сенің өмірлік моральдық компасың</h1>
+        <p class="hero-standfirst">«Адал азамат» — бұл мінсіз болу емес, күнделікті өмірде ар-ождан мен әділдікті таңдау.</p>
+        <p class="hero-copy">
+          Цифрлық дәуірде жасөспірімнің дүниетанымы мен азаматтық ұстанымын қалыптастыруда көркем әдебиеттің орны айрықша. Заманауи <em>Young Adult</em> (YA) туындылары құрғақ ақыл айтудан арылып, кейіпкердің ішкі арпалысы, эмпатия, киберэтика және экологиялық жауапкершілік арқылы «Адал азамат» образын шынайы ашады.
+        </p>
+        <div class="hero-actions">
+          <a href="#catalog" class="btn btn-primary">
+            <i data-lucide="book-open" width="18" height="18" aria-hidden="true"></i>
+            Кітаптар топтамасын шолу
+          </a>
+          <a href="#checklist" class="btn btn-gold">
+            <i data-lucide="compass" width="18" height="18" aria-hidden="true"></i>
+            Өзіңді тексер: Чек-лист
+          </a>
+        </div>
+      </div>
+
+      <aside class="hero-panel" aria-label="Негізгі эмпирикалық көрсеткіштер">
+        <div class="panel-kicker">
+          <span>ЗЕРТТЕУ ИНДЕКСІ</span>
+          <span>N = 120 ОҚУШЫ</span>
+        </div>
+        <div class="hero-stat-grid">
+          <div class="stat-tile">
+            <div class="stat-value">78,3%</div>
+            <div class="stat-label">ішкі арпалысы бар психологиялық кейіпкерді таңдайды</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-value">52,5%</div>
+            <div class="stat-label">кітап оқу өмірлік шешімдеріне әсер ететінін растады</div>
+          </div>
+        </div>
+        <div class="compass-pillars">
+          <div class="compass-row">
+            <span class="index-num">01</span>
+            <div><strong>Ар-ождан тазалығы:</strong> интернеттегі анонимділік кезінде де моральдық норманы сақтау.</div>
+          </div>
+          <div class="compass-row">
+            <span class="index-num">02</span>
+            <div><strong>Белсенді азаматтық:</strong> буллингке қарсы тұру және табиғат пен қоғамға жауапкершілікпен қарау.</div>
+          </div>
+          <div class="compass-row">
+            <span class="index-num">03</span>
+            <div><strong>Сын тұрғысынан ойлау:</strong> фейк ақпаратқа ермей, әділдік пен заң аясында әрекет ету.</div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- 2. РУХАНИ-ФИЛОСОФИЯЛЫҚ БӨЛІМ -->
+    <section id="philosophy" class="section-block" aria-labelledby="philosophy-heading">
+      <div>
+        <div class="dossier-bar">
+          <span class="dossier-pill">01 · РУХАНИ НЕГІЗ</span>
+          <span class="dossier-meta">АБАЙДЫҢ «ТОЛЫҚ АДАМЫ» ЖӘНЕ ШӘКӘРІМНІҢ «АР ІЛІМІ»</span>
+        </div>
+        <h2 id="philosophy-heading" class="section-title">Ұлттық философия мен жасөспірім құндылықтарының сабақтастығы</h2>
+        <p class="section-lead">«Адал азамат» идеологиясы — Абайдың «Толық адам» және Шәкәрімнің «Ар ілімі» тұжырымдамаларының XXI ғасырдағы жалғасы. Төмендегі қос ілімнің заманауи баламасын таңдап, салыстырып көріңіз.</p>
+      </div>
+
+      <div class="philosophy-tabs" role="tablist" aria-label="Философиялық ілімдер">
+        <button class="tab-btn" role="tab" id="tab-shakarim" aria-selected="true" onclick="switchPhilosophy('shakarim')">
+          <i data-lucide="scale" width="18" height="18" aria-hidden="true"></i>
+          Шәкәрімнің «Ар ілімі» (Нысап, Рақым, Ақ жүрек)
+        </button>
+        <button class="tab-btn" role="tab" id="tab-abai" aria-selected="false" onclick="switchPhilosophy('abai')">
+          <i data-lucide="heart-handshake" width="18" height="18" aria-hidden="true"></i>
+          Абайдың «Толық адам» ілімі (Ақыл, Ғылым, Әділет)
+        </button>
+      </div>
+
+      <div class="philosophy-stage">
+        <div class="figure-card" id="philosophy-triad-panel">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <aside class="aside-box" id="philosophy-detail-panel" aria-live="polite">
+          <!-- Populated dynamically via JS -->
+        </aside>
+      </div>
+
+      <table class="matrix-table" aria-label="Рухани концепциялардың заманауи баламасы">
+        <thead>
+          <tr>
+            <th>Дәстүрлі категория</th>
+            <th>Философиялық өзегі</th>
+            <th>Заманауи жасөспірім өміріндегі көрінісі</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Нысап</strong> (Шәкәрім)</td>
+            <td>Қанағат, өлшем білу, нәпсіні тыю</td>
+            <td>Тұтынушылық хайп пен ысыраптан арылу, экологиялық сана және тұрақты даму</td>
+          </tr>
+          <tr>
+            <td><strong>Рақым</strong> (Шәкәрім)</td>
+            <td>Мейірім, өзгеге жанашырлық</td>
+            <td>Мектептегі буллингке қарсы тұру, инклюзивті орта құру, эмпатия мен еріктілік</td>
+          </tr>
+          <tr>
+            <td><strong>Ақ жүрек</strong> (Шәкәрім)</td>
+            <td>Адал ниет, ар-ождан тазалығы</td>
+            <td>Академиялық адалдық (плагиатқа жол бермеу), медиасауаттылық, киберэтика</td>
+          </tr>
+          <tr>
+            <td><strong>Ақыл + Ғылым + Әділет</strong> (Абай)</td>
+            <td>«Ыстық қайрат, нұрлы ақыл, жылы жүрек»</td>
+            <td>Эмоционалдық интеллект (EQ), сын тұрғысынан ойлау, заң мен тәртіпті құрметтеу</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 3. КІТАПТАР КАТАЛОГЫ -->
+    <section id="catalog" class="section-block" aria-labelledby="catalog-heading">
+      <div>
+        <div class="dossier-bar">
+          <span class="dossier-pill">02 · ИНТЕРАКТИВТІ КАТАЛОГ</span>
+          <span class="dossier-meta">ТӨРТ КІТАП · КЕЙС-СҰРАҚТАР · QR-НАВИГАЦИЯ</span>
+        </div>
+        <h2 id="catalog-heading" class="section-title">«Адал азамат: Жасөспірімдерге арналған топтама»</h2>
+        <p class="section-lead">Әр туынды жас оқырман алдына нақты моральдық таңдау қояды. Құндылық бағыты бойынша сүзгіден өткізіп, рефлексивті сұраққа өз ойыңызды жазып көріңіз және кітаптың QR-коды арқылы электронды нұсқасына өтіңіз.</p>
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter-pills" role="group" aria-label="Бағыт бойынша сүзгі">
+          <button class="filter-pill" aria-pressed="true" onclick="filterBooks('all', this)">Барлығы (4)</button>
+          <button class="filter-pill" aria-pressed="false" onclick="filterBooks('cyber', this)">Киберэтика</button>
+          <button class="filter-pill" aria-pressed="false" onclick="filterBooks('eco', this)">Экология</button>
+          <button class="filter-pill" aria-pressed="false" onclick="filterBooks('inclusion', this)">Инклюзия</button>
+          <button class="filter-pill" aria-pressed="false" onclick="filterBooks('justice', this)">Әділдік және заң</button>
+        </div>
+        <div class="status-toast" id="reflection-save-status" aria-live="polite"></div>
+      </div>
+
+      <div class="catalog-grid" id="catalog-grid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- 4. ЗЕРТТЕУ НӘТИЖЕЛЕРІ -->
+    <section id="research" class="section-block" aria-labelledby="research-heading">
+      <div>
+        <div class="dossier-bar">
+          <span class="dossier-pill">03 · ЭМПИРИКАЛЫҚ ТАЛДАУ</span>
+          <span class="dossier-meta">7–11 СЫНЫП ОҚУШЫЛАРЫ АРАСЫНДАҒЫ САУАЛНАМА (N = 120)</span>
+        </div>
+        <h2 id="research-heading" class="section-title">Сауалнама нәтижелері: Жасөспірім қандай кейіпкерге сенеді?</h2>
+        <p class="section-lead">Google Forms платформасы арқылы 120 оқушыдан алынған деректер жасөспірімдердің «идеалды плакаттық батырдан» гөрі, қателессе де ар-ождан таразысымен дұрыс жол табатын кейіпкерлерді таңдайтынын дәлелдеді.</p>
+      </div>
+
+      <div class="research-grid">
+        <div class="chart-card">
+          <div>
+            <h3 class="chart-title">Көркем шығармадағы қандай кейіпкер көбірек ұнайды?</h3>
+            <p class="chart-sub">1-сұрақ · Респонденттер үлесі (%)</p>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="chart-hero-type" aria-label="Кейіпкер түрін таңдау диаграммасы"></canvas>
+          </div>
+          <div class="chart-takeaway">
+            <strong>Түйін:</strong> Оқушылардың <strong>78,3%-ы</strong> ішкі арпалысы бар психологиялық кейіпкерді жоғары бағалайды.
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div>
+            <h3 class="chart-title">Кейіпкердің әділ іс-әрекеті өмірлік шешімге әсер ете ме?</h3>
+            <p class="chart-sub">2-сұрақ · Моральдық ықпал деңгейі (%)</p>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="chart-impact" aria-label="Моральдық шешімге әсер диаграммасы"></canvas>
+          </div>
+          <div class="chart-takeaway">
+            <strong>Түйін:</strong> <strong>52,5%</strong> оқушы кітап кейіпкері секілді әділ әрекет етуге тырысатынын айтты (тағы 39,2%-ын ойландырады).
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div>
+            <h3 class="chart-title">Заманауи «Адал азаматтың» басты сапасы қандай?</h3>
+            <p class="chart-sub">3-сұрақ · Құндылықтар портреті (%)</p>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="chart-qualities" aria-label="Адал азамат сапалары диаграммасы"></canvas>
+          </div>
+          <div class="chart-takeaway">
+            <strong>Түйін:</strong> <strong>45,0%</strong> жасөспірім заңды сыйлау, жауапкершілік және буллингке қарсылықты біртұтас кешен ретінде көреді.
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div>
+            <h3 class="chart-title">Қай кітап кейіпкерінен «Адал азамат» сипатын байқадыңыз?</h3>
+            <p class="chart-sub">4-сұрақ · Оқырмандар таңдауы (%)</p>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="chart-books" aria-label="Шығармалар танымалдығы диаграммасы"></canvas>
+          </div>
+          <div class="chart-takeaway">
+            <strong>Түйін:</strong> Отандық және аударма YA прозасы жасөспірімдердің азаматтық көзқарасын қалыптастыруда белсенді рөл атқарады.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. ИНТЕРАКТИВТІ ӨЗІН-ӨЗІ БАҒАЛАУ БҰРЫШЫ -->
+    <section id="checklist" class="section-block" aria-labelledby="checklist-heading">
+      <div>
+        <div class="dossier-bar">
+          <span class="dossier-pill">04 · ӨЗІН-ӨЗІ БАҒАЛАУ БҰРЫШЫ</span>
+          <span class="dossier-meta">«ӨЗ ӨМІРІМДЕ АДАЛ АЗАМАТПЫН БА?» ЧЕК-ЛИСТ ЖӘНЕ ЭКСПРЕСС-ТЕСТ</span>
+        </div>
+        <h2 id="checklist-heading" class="section-title">«Өз өмірімде Адал азаматпын ба?» чек-листі мен экспресс-тесті</h2>
+        <p class="section-lead">Күнделікті өмірдегі әдеттеріңізді белгілеп, қысқа ситуациялық экспресс-тест сұрақтарына жауап беріңіз. Нәтиже автоматты түрде есептеліп, сақталады.</p>
+      </div>
+
+      <div class="assessment-grid">
+        <div class="checklist-card">
+          <div class="panel-kicker">
+            <span>КҮНДЕЛІКТІ АДАЛДЫҚ ЧЕК-ЛИСТІ</span>
+            <button type="button" class="btn btn-secondary reset-btn" onclick="resetAssessment(this)">Тазарту</button>
+          </div>
+
+          <label class="check-item" id="check-wrap-0">
+            <input type="checkbox" id="chk-0" onchange="toggleCheck(0)">
+            <div class="check-text">
+              <span class="check-title">Цифрлық желіде анонимділікке сүйеніп біреуді ренжітпеймін</span>
+              <span class="check-sub">Киберэтика: фейк таратпау, жеке шекараны және абыройды сақтау.</span>
+            </div>
+          </label>
+
+          <label class="check-item" id="check-wrap-1">
+            <input type="checkbox" id="chk-1" onchange="toggleCheck(1)">
+            <div class="check-text">
+              <span class="check-title">Мектепте немесе көшеде әділетсіздікті (буллингті) көрсем, бейтарап қалмаймын</span>
+              <span class="check-sub">Рақым мен инклюзия: әлсізді қолдау, шеттетуге жол бермеу.</span>
+            </div>
+          </label>
+
+          <label class="check-item" id="check-wrap-2">
+            <input type="checkbox" id="chk-2" onchange="toggleCheck(2)">
+            <div class="check-text">
+              <span class="check-title">Академиялық адалдықты сақтаймын (көшірмеймін, плагиат жасамаймын)</span>
+              <span class="check-sub">Ақ жүрек: өз білімі мен еңбегіне сүйену, адал баға алу.</span>
+            </div>
+          </label>
+
+          <label class="check-item" id="check-wrap-3">
+            <input type="checkbox" id="chk-3" onchange="toggleCheck(3)">
+            <div class="check-text">
+              <span class="check-title">Қоршаған ортаға (табиғатқа) жауапкершілікпен қараймын</span>
+              <span class="check-sub">Нысап: табиғатты ластамау, ресурстарды үнемдеу, туған жерді қорғау.</span>
+            </div>
+          </label>
+
+          <div class="quiz-block">
+            <p class="quiz-q">Экспресс-тест 1: Сыныпта топтық чатта біреуді мазақтап сурет салса, қандай шешім қабылдайсыз?</p>
+            <div class="quiz-options">
+              <button type="button" class="quiz-opt-btn" id="q1-a" onclick="selectQuiz(1, 'a', 0)">Үндемеймін, бастысы маған тиіспесе болды</button>
+              <button type="button" class="quiz-opt-btn" id="q1-b" onclick="selectQuiz(1, 'b', 2)">Мұны тоқтатуды талап етіп, сыныптасымды қолдаймын</button>
+              <button type="button" class="quiz-opt-btn" id="q1-c" onclick="selectQuiz(1, 'c', 1)">Күлемін де, өтіп кетемін</button>
+            </div>
+          </div>
+
+          <div class="quiz-block">
+            <p class="quiz-q">Экспресс-тест 2: Танымал болу үшін шындыққа сәйкес келмейтін контент жариялау ұсынылса ше?</p>
+            <div class="quiz-options">
+              <button type="button" class="quiz-opt-btn" id="q2-a" onclick="selectQuiz(2, 'a', 2)">Бас тартамын, өйткені абырой мен ар-ождан лайктан маңызды</button>
+              <button type="button" class="quiz-opt-btn" id="q2-b" onclick="selectQuiz(2, 'b', 0)">Қаралым жинау үшін жариялай беремін</button>
+              <button type="button" class="quiz-opt-btn" id="q2-c" onclick="selectQuiz(2, 'c', 1)">Кейін өшіріп тастармын деп келісемін</button>
+            </div>
+          </div>
+        </div>
+
+        <aside class="score-panel" aria-live="polite">
+          <div class="panel-kicker">
+            <span>СЕНІҢ МОРАЛЬДЫҚ КОМПАСЫҢ</span>
+            <span id="score-percent-label">0%</span>
+          </div>
+          <div class="score-ring-wrap">
+            <div class="score-badge">
+              <span class="score-num" id="score-total">0</span>
+              <span class="score-den">/ 8 ұпай</span>
+            </div>
+            <div>
+              <strong id="score-tier-title">Бағалауды бастаңыз</strong>
+              <p id="score-tier-desc" style="margin: 4px 0 0 0; font-size: 0.875rem; color: var(--on-surface-variant);">
+                Чек-лист тармақтары мен экспресс-тест жауаптарын таңдап, жеке бағдарыңызды анықтаңыз.
+              </p>
+            </div>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-fill" id="score-progress-fill"></div>
+          </div>
+          <div class="aside-box" style="margin-top: var(--space-xs);">
+            <div style="font-weight: 700; font-size: 0.9rem;">Қай кітаптан бастауға кеңес береміз?</div>
+            <p id="score-book-rec" style="margin: 0; font-size: 0.875rem; color: var(--on-surface-variant);">
+              Таңдауыңызға қарай сізге ең өзекті туынды осы жерде ұсынылады.
+            </p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 6. ПРАКТИКАЛЫҚ БӨЛІКТЕР (QR-кодсыз, Telegram ботқа шақыру батырмаларымен) -->
+    <section id="practice" class="section-block" aria-labelledby="practice-heading">
+      <div>
+        <div class="dossier-bar">
+          <span class="dossier-pill">05 · ПРАКТИКАЛЫҚ ҚОЛДАНЫС</span>
+          <span class="dossier-meta">ПЕДАГОГТЕРГЕ, КІТАПХАНАЛАРҒА ЖӘНЕ ОҚЫРМАНДАРҒА АРНАЛҒАН БӨЛІМДЕР</span>
+        </div>
+        <h2 id="practice-heading" class="section-title">Кейс-стади, кітапханалық жинақ және оқылым картасы</h2>
+        <p class="section-lead">«Біртұтас тәрбие» бағдарламасы мен әдебиет сабақтарында қолдануға арналған әдістемелік блоктар. Барлық қосымша материалдар мен интерактивті тапсырмалар Telegram бот арқылы қолжетімді.</p>
+      </div>
+
+      <div class="modules-grid">
+        <!-- Блок 1: Кейс-стади -->
+        <article class="module-card">
+          <div class="module-head">
+            <span class="index-num" style="width: fit-content;">БӨЛІМ 01</span>
+            <h3 class="module-title">Кейс-стади</h3>
+            <p style="margin: 0; font-size: 0.9375rem; color: var(--on-surface-variant);">
+              Сынып сағаттары мен дебат клубтарында талқыланатын өмірлік моральдық дилеммалар жинағы.
+            </p>
+          </div>
+          <ul class="module-list">
+            <li>Кибербуллинг және желідегі жеке жауапкершілік кейстері</li>
+            <li>Топтық қысымға қарсы тұру және шындықты жақтау жағдаяттары</li>
+            <li>Экологиялық таңдау және туған өлкеге қамқорлық тапсырмалары</li>
+          </ul>
+          <div class="bot-cta-box">
+            <button type="button" class="bot-btn" onclick="openBotPrompt('case-study')">
+              <i data-lucide="send" width="16" height="16" aria-hidden="true"></i>
+              Telegram ботқа өту: @AdalAzamat_BoL
+            </button>
+            <div class="bot-feedback" id="bot-msg-case-study" aria-live="polite"></div>
+          </div>
+        </article>
+
+        <!-- Блок 2: Мектеп кітапханасына арналған жинақ -->
+        <article class="module-card">
+          <div class="module-head">
+            <span class="index-num" style="width: fit-content;">БӨЛІМ 02</span>
+            <h3 class="module-title">Мектеп кітапханасына арналған жинақ</h3>
+            <p style="margin: 0; font-size: 0.9375rem; color: var(--on-surface-variant);">
+              «ReadX» және «BookClub» оқырман клубтарына, кітапхана бұрыштарына арналған әдістемелік топтама.
+            </p>
+          </div>
+          <ul class="module-list">
+            <li>Төрт негізгі кітап бойынша дайын аннотациялар мен талдау карталары</li>
+            <li>#BookTokKazakhstan форматындағы буктрейлер сценарийлері</li>
+            <li>Ата-аналар мен сынып жетекшілеріне арналған оқу ұсынымдары</li>
+          </ul>
+          <div class="bot-cta-box">
+            <button type="button" class="bot-btn" onclick="openBotPrompt('library')">
+              <i data-lucide="send" width="16" height="16" aria-hidden="true"></i>
+              Telegram ботқа өту: @AdalAzamat_BoL
+            </button>
+            <div class="bot-feedback" id="bot-msg-library" aria-live="polite"></div>
+          </div>
+        </article>
+
+        <!-- Блок 3: Оқылым картасы -->
+        <article class="module-card">
+          <div class="module-head">
+            <span class="index-num" style="width: fit-content;">БӨЛІМ 03</span>
+            <h3 class="module-title">Оқылым картасы</h3>
+            <p style="margin: 0; font-size: 0.9375rem; color: var(--on-surface-variant);">
+              Жасөспірімнің оқу траекториясын Абай мен Шәкәрім ілімдерімен байланыстыратын бағдаршам картасы.
+            </p>
+          </div>
+          <ul class="module-list">
+            <li>1-кезең: Эмпатиялық оқылым (Р.Дж. Паласио «Таңғажайып»)</li>
+            <li>2-кезең: Киберэтика мен табиғат (З. Төреханова, Е. Тоқтарбай)</li>
+            <li>3-кезең: Заң мен әділдік рефлексиясы (М. Айымбетов)</li>
+          </ul>
+          <div class="bot-cta-box">
+            <button type="button" class="bot-btn" onclick="openBotPrompt('reading-map')">
+              <i data-lucide="send" width="16" height="16" aria-hidden="true"></i>
+              Telegram ботқа өту: @AdalAzamat_BoL
+            </button>
+            <div class="bot-feedback" id="bot-msg-reading-map" aria-live="polite"></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="editorial-footer">
+      <div>
+        <strong>Дереккөздер мен ғылыми негіздеме</strong>
+        <p style="margin: var(--space-xs) 0 0 0;">
+          Алматы қаласы Бостандық ауданы №215 ЖББМ, 10-сынып оқушысы Махсед Іңкәрдің «Көркем әдебиеттегі «Адал азамат» образы: Заманауи жасөспірімдер әдебиетіндегі трендтер мен құндылықтар» ғылыми жобасы (2026 ж.) материалдары негізінде әзірленді.
+        </p>
+      </div>
+      <div>
+        <strong>Негізгі әдебиеттер мен бағдарламалар</strong>
+        <p style="margin: var(--space-xs) 0 0 0;">
+          Абай Құнанбайұлы «Қара сөздер», Шәкәрім Құдайбердіұлы «Үш анық», «Біртұтас тәрбие бағдарламасы» (2023–2026), З. Төреханова, Е. Тоқтарбай, Р.Дж. Паласио, М. Айымбетов шығармалары.
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <api-shim></api-shim>
+
+  <script>
+    // --- Deterministic QR-like Vector Generator (Grounded per-book matrix visual, zero external fetches) ---
+    function generateQrSvg(seedText, labelText) {
+      let hash = 2166136261;
+      for (let i = 0; i < seedText.length; i++) {
+        hash ^= seedText.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      const size = 21;
+      const cells = [];
+      for (let r = 0; r < size; r++) {
+        cells[r] = [];
+        for (let c = 0; c < size; c++) {
+          const inTopLeft = r < 7 && c < 7;
+          const inTopRight = r < 7 && c >= size - 7;
+          const inBottomLeft = r >= size - 7 && c < 7;
+          if (inTopLeft || inTopRight || inBottomLeft) {
+            const lr = inBottomLeft ? r - (size - 7) : r;
+            const lc = inTopRight ? c - (size - 7) : c;
+            const isOuter = lr === 0 || lr === 6 || lc === 0 || lc === 6;
+            const isInner = lr >= 2 && lr <= 4 && lc >= 2 && lc <= 4;
+            cells[r][c] = isOuter || isInner ? 1 : 0;
+          } else if (r === 6 || c === 6) {
+            cells[r][c] = (r + c) % 2 === 0 ? 1 : 0;
+          } else {
+            hash ^= (r * 31 + c * 17);
+            hash = Math.imul(hash, 16777619);
+            cells[r][c] = (hash >>> 0) % 2 === 0 ? 1 : 0;
+          }
+        }
+      }
+      let rects = ``;
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          if (cells[r][c] === 1) {
+            rects += `<rect x="${c}" y="${r}" width="1" height="1" fill="currentColor"/>`;
+          }
+        }
+      }
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" role="img" aria-label="${labelText}">${rects}</svg>`;
+    }
+
+    // --- 1. Philosophy Data & Interaction ---
+    const philosophyData = {
+      shakarim: {
+        title: `Шәкәрімнің «Ар ілімі»`,
+        subtitle: `«Адамға ең керегі — ар-ождан, ал ол ақыл мен ғылымнан да жоғары тұруы тиіс»`,
+        items: [
+          {
+            key: `nysap`,
+            name: `Нысап (Қанағат, өлшем)`,
+            tag: `Экологиялық сана`,
+            modern: `Тұтынушылық психологиядан (хайп, ысырап) арылу, экологиялық сана мен тұрақты даму мәдениеті.`,
+            yaExample: `Елдос Тоқтарбайдың «Тау құсы» шығармасында жас кейіпкерлер табиғат байлығына ысырапсыз, үнемді әрі жауапкершілікпен қарайды.`
+          },
+          {
+            key: `raqym`,
+            name: `Рақым (Эмпатия, мейірім)`,
+            tag: `Буллингке қарсылық`,
+            modern: `Буллингке қарсы тұру, инклюзивті орта құру, әлеуметтік белсенділік пен еріктілік (волонтерлік).`,
+            yaExample: `Р.Дж. Паласионың «Таңғажайып» романында Саммердің ешкімнен қорықпай, Оггиге шынайы достық танытуы — рақымның көрінісі.`
+          },
+          {
+            key: `aqjurek`,
+            name: `Ақ жүрек (Шыншылдық, адалдық)`,
+            tag: `Киберэтика`,
+            modern: `Академиялық адалдық, медиасауаттылық, жеке жауапкершілік және цифрлық кеңістіктегі таза абырой.`,
+            yaExample: `Зәуре Төреханованың «Амина» сериясында кейіпкер желідегі жасанды атақтан гөрі шынайы өмірдегі адалдықты жоғары қояды.`
+          }
+        ]
+      },
+      abai: {
+        title: `Абайдың «Толық адам» ілімі`,
+        subtitle: `Формула (38-қара сөз): Толық адам = Ақыл + Ғылым + Әділет`,
+        items: [
+          {
+            key: `aqyl`,
+            name: `Нұрлы ақыл (Зеректік, логика)`,
+            tag: `Медиасауаттылық`,
+            modern: `Сын тұрғысынан ойлау, фейк ақпаратты ажырата білу, медиасауаттылық және академизм.`,
+            yaExample: `Мәди Айымбетовтің детективті прозасында кейіпкерлер даулы жағдайды эмоциямен емес, логикалық талдау мен заң аясында шешеді.`
+          },
+          {
+            key: `qairat`,
+            name: `Ыстық қайрат (Талап, жігер)`,
+            tag: `Белсенді азаматтық`,
+            modern: `Өз-өзін басқару, мақсатшылдық, үздіксіз ізденіс пен білім алу, жасампаз көшбасшылық.`,
+            yaExample: `Заманауи YA кейіпкерлері қиындық алдында шегінбей, қоғамдық істерде бастамашылдық танытады.`
+          },
+          {
+            key: `jurek`,
+            name: `Жылы жүрек (Әділет пен ар-ождан)`,
+            tag: `Эмоционалдық интеллект`,
+            modern: `Эмоционалдық интеллект (EQ), «Адал азамат» этикалық кодексі, сыбайлас жемқорлыққа төзбеушілік.`,
+            yaExample: `Абайдың 17-қара сөзіндегідей, Ақыл мен Қайратты ізгілікке бағыттайтын басты тетік — Жүрек пен Әділет.`
+          }
+        ]
+      }
+    };
+
+    let currentPhil = `shakarim`;
+    let currentTriadIdx = 0;
+
+    function switchPhilosophy(key) {
+      currentPhil = key;
+      currentTriadIdx = 0;
+      const tabS = document.getElementById('tab-shakarim');
+      const tabA = document.getElementById('tab-abai');
+      if (tabS) tabS.setAttribute('aria-selected', key === 'shakarim' ? 'true' : 'false');
+      if (tabA) tabA.setAttribute('aria-selected', key === 'abai' ? 'true' : 'false');
+      renderPhilosophy();
+    }
+
+    function selectTriad(idx) {
+      currentTriadIdx = idx;
+      renderPhilosophy();
+    }
+
+    function renderPhilosophy() {
+      const data = philosophyData[currentPhil];
+      const triadPanel = document.getElementById('philosophy-triad-panel');
+      const detailPanel = document.getElementById('philosophy-detail-panel');
+      if (!triadPanel || !detailPanel || !data) return;
+
+      let buttonsHtml = ``;
+      data.items.forEach((item, idx) => {
+        const activeClass = idx === currentTriadIdx ? `is-active` : ``;
+        buttonsHtml += `
+          <button type="button" class="triad-item ${activeClass}" onclick="selectTriad(${idx})">
+            <div class="triad-head">
+              <span>0${idx + 1} · ${item.name}</span>
+              <span class="triad-tag">${item.tag}</span>
+            </div>
+            <span style="font-size: 0.875rem; color: var(--on-surface-variant);">${item.modern}</span>
+          </button>
+        `;
+      });
+
+      triadPanel.innerHTML = `
+        <div>
+          <h3 style="font-family: var(--font-headline); font-size: 1.5rem; margin: 0;">${data.title}</h3>
+          <p style="margin: var(--space-xs) 0 0 0; color: var(--secondary); font-weight: 600; font-size: 0.95rem;">${data.subtitle}</p>
+        </div>
+        <div class="triad-list">${buttonsHtml}</div>
+      `;
+
+      const selected = data.items[currentTriadIdx];
+      detailPanel.innerHTML = `
+        <div class="panel-kicker">
+          <span>ТАҢДАЛҒАН ҚҰНДЫЛЫҚ ВЕКТОРЫ</span>
+          <span>${selected.tag}</span>
+        </div>
+        <h3 style="font-family: var(--font-headline); font-size: 1.45rem; margin: 0; color: var(--on-surface);">${selected.name}</h3>
+        <div>
+          <div style="font-weight: 700; font-size: 0.85rem; color: var(--secondary); margin-bottom: 4px;">ҚАЗІРГІ ЖАСӨСПІРІМ ӨМІРІНДЕГІ МАҢЫЗЫ</div>
+          <p style="margin: 0;">${selected.modern}</p>
+        </div>
+        <div style="background: var(--surface-container-low); padding: var(--space-md); border-radius: var(--rounded); border: var(--card-border);">
+          <div style="font-weight: 700; font-size: 0.85rem; color: var(--tertiary); margin-bottom: 4px;">ӘДЕБИЕТТЕГІ КӨРІНІСІ</div>
+          <p style="margin: 0; font-size: 0.9375rem;">${selected.yaExample}</p>
+        </div>
+      `;
+    }
+
+    // --- 2. Four Books Catalog Data ---
+    const booksData = [
+      {
+        id: `amina`,
+        category: `cyber`,
+        vector: `Киберэтика және желідегі абырой`,
+        author: `Зәуре Төреханова`,
+        title: `«Амина» сериясы`,
+        annotation: `Заманауи қалалық жасөспірім Аминаның әлеуметтік желідегі танымалдылық пен шынайы өмір құндылықтары арасындағы ішкі ізденісі баяндалады.`,
+        adalValue: `Кейіпкер виртуалды ортадағы жасанды абырой мен хайптан бас тартып, цифрлық кеңістіктегі ар-ождан тазалығы мен медиасауаттылық үлгісін көрсетеді.`,
+        question: `Әлеуметтік желідегі танымалдылық үшін ар-ожданыңнан аттайтын сәт туса, қандай таңдау жасар едің?`,
+        qrSeed: `ADAL-AZAMAT-ZAURE-TOREKHANOVA-AMINA-SERIES`,
+        qrCodeId: `QR-01 · АМИНА СЕРИЯСЫ`,
+        qrDesc: `Электронды және аудио нұсқасына өту үшін сканерлеңіз`
+      },
+      {
+        id: `tau-qusy`,
+        category: `eco`,
+        vector: `Экологиялық сана және табиғатты қорғау`,
+        author: `Елдос Тоқтарбай`,
+        title: `«Тау құсы»`,
+        annotation: `Туған өлке табиғатын, таулы аймақтың экожүйесі мен тарихи-мәдени мұрасын қорғау жолындағы жасөспірімдердің батыл іс-әрекеті суреттеледі.`,
+        adalValue: `Жас кейіпкерлер табиғи ресурстарды талан-таражға салуға қарсы тұрып, туған жер алдындағы азаматтық жауапкершілік пен ұжымдық ынтымақты дәлелдейді.`,
+        question: `Өз аулаң мен мектебіңде туған табиғатты қорғау үшін қандай нақты іс атқара аласың?`,
+        qrSeed: `ADAL-AZAMAT-ELDOS-TOKTARBAY-TAU-QUSY`,
+        qrCodeId: `QR-02 · ТАУ ҚҰСЫ`,
+        qrDesc: `Шығарманың толық мәтініне өту үшін сканерлеңіз`
+      },
+      {
+        id: `wonder`,
+        category: `inclusion`,
+        vector: `Инклюзия және буллингке қарсылық`,
+        author: `Р.Дж. Паласио`,
+        title: `«Таңғажайып» (Wonder)`,
+        annotation: `Бет-әлпетінде ерекшелігі бар Август (Огги) есімді баланың мектеп ортасына бейімделуі мен сыныптастарының моральдық есею жолы баяндалады.`,
+        adalValue: `Саммер мен Джек Уиллдің көпшілік қысымына қарамай Оггиді қолдауы — өзгешелікке құрметпен қарау мен буллингке қарсы тұрудың жарқын үлгісі.`,
+        question: `Сыныптасың өзгелерден ерекше болса, оған «Адал азамат» ретінде қалай қолдау көрсетер едің?`,
+        qrSeed: `ADAL-AZAMAT-RJ-PALACIO-WONDER-TANGAZHAYIP`,
+        qrCodeId: `QR-03 · ТАҢҒАЖАЙЫП`,
+        qrDesc: `Аударма нұсқасы мен оқырман гидіне өту үшін сканерлеңіз`
+      },
+      {
+        id: `aiymbetov`,
+        category: `justice`,
+        vector: `Заңды құрметтеу және әділдік`,
+        author: `Мәди Айымбетов`,
+        title: `Жасөспірімдерге арналған детективтік хикаяттар`,
+        annotation: `Мегаполис пен аула өміріндегі жасөспірімдердің шым-шытырық оқиғаларға тап болып, шындықты іздеу барысындағы әділдік жолы суреттеледі.`,
+        adalValue: `Кейіпкерлер мектептегі және ортадағы заңбұзушылықты өз бетінше кек алумен емес, заңды құрметтеу, намыс пен ар-ождан аясында шешеді.`,
+        question: `Қиын сәтте досыңның қателігін жасырасың ба, әлде шындықты айтуға батылдығың жете ме?`,
+        qrSeed: `ADAL-AZAMAT-MADI-AIYMBETOV-DETECTIVE`,
+        qrCodeId: `QR-04 · МӘДИ АЙЫМБЕТОВ`,
+        qrDesc: `Кітап картасы мен талдау нұсқасына өту үшін сканерлеңіз`
+      }
+    ];
+
+    let activeFilter = `all`;
+    let savedReflections = {};
+
+    function filterBooks(cat, btnEl) {
+      activeFilter = cat;
+      const pills = document.querySelectorAll('.filter-pill');
+      pills.forEach(p => p.setAttribute('aria-pressed', 'false'));
+      if (btnEl) btnEl.setAttribute('aria-pressed', 'true');
+      renderCatalog();
+    }
+
+    function renderCatalog() {
+      const grid = document.getElementById('catalog-grid');
+      if (!grid) return;
+
+      const list = activeFilter === `all`
+        ? booksData
+        : booksData.filter(b => b.category === activeFilter);
+
+      let html = ``;
+      list.forEach((book, idx) => {
+        const val = savedReflections[book.id] || ``;
+        const qrMarkup = generateQrSvg(book.qrSeed, `${book.author} — ${book.title} QR-коды`);
+        html += `
+          <article class="book-card">
+            <div class="book-body">
+              <div class="book-header">
+                <div>
+                  <span class="book-vector">${book.vector}</span>
+                  <h3 class="book-title">${book.title}</h3>
+                  <div class="book-author">${book.author}</div>
+                </div>
+                <span class="index-num">0${idx + 1}</span>
+              </div>
+
+              <p class="book-annotation">${book.annotation}</p>
+
+              <div class="book-value-box">
+                <strong>«Адал азамат» бейнесі:</strong> ${book.adalValue}
+              </div>
+
+              <div class="reflection-box">
+                <div class="reflection-label">
+                  <i data-lucide="message-square-quote" width="15" height="15" aria-hidden="true"></i>
+                  РЕФЛЕКСИВТІ СҰРАҚ
+                </div>
+                <p class="reflection-q">${book.question}</p>
+                <div class="reflection-input-wrap">
+                  <label for="reflect-${book.id}">Өз ойыңыз (сақталады):</label>
+                  <textarea
+                    id="reflect-${book.id}"
+                    class="reflection-textarea"
+                    placeholder="Осы жағдаятқа қатысты өз ұстанымыңызды жазыңыз..."
+                    oninput="handleReflectionInput('${book.id}', this.value)"
+                  >${escapeHtml(val)}</textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="qr-footer">
+              <div class="qr-box" title="${book.qrCodeId}">
+                ${qrMarkup}
+              </div>
+              <div class="qr-meta">
+                <span class="qr-code-id">${book.qrCodeId}</span>
+                <span class="qr-title">${book.author} — ${book.title}</span>
+                <span class="qr-caption">${book.qrDesc}</span>
+              </div>
+            </div>
+          </article>
+        `;
+      });
+
+      grid.innerHTML = html;
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    let saveTimer = null;
+    function handleReflectionInput(bookId, text) {
+      savedReflections[bookId] = text;
+      const statusEl = document.getElementById('reflection-save-status');
+      if (statusEl) statusEl.textContent = `Жазба сақталуда…`;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        persistState();
+        if (statusEl) statusEl.textContent = `Ой-пікір сақталды`;
+      }, 350);
+    }
+
+    // --- 3. Research Charts (Chart.js, 120 students survey) ---
+    function initCharts() {
+      if (typeof Chart === 'undefined') return;
+
+      const styles = getComputedStyle(document.documentElement);
+      const c1 = styles.getPropertyValue('--data-1').trim() || '#1f4e5f';
+      const c2 = styles.getPropertyValue('--data-2').trim() || '#d99000';
+      const c3 = styles.getPropertyValue('--data-3').trim() || '#2b6e52';
+      const c4 = styles.getPropertyValue('--data-4').trim() || '#b84a39';
+      const cCtx = styles.getPropertyValue('--data-context').trim() || '#c4bfb2';
+      const ink = styles.getPropertyValue('--on-surface').trim() || '#17181a';
+      const chartBorder = styles.getPropertyValue('--chart-border').trim() || '#ffffff';
+
+      Chart.defaults.font.family = "'Plus Jakarta Sans', 'Noto Sans', sans-serif";
+      Chart.defaults.color = ink;
+
+      const ctx1 = document.getElementById('chart-hero-type');
+      if (ctx1) {
+        new Chart(ctx1, {
+          type: 'bar',
+          data: {
+            labels: ['Психологиялық кейіпкер (78,3%)', 'Мінсіз батыр (14,2%)', 'Тек көңіл көтеретін (7,5%)'],
+            datasets: [{
+              label: 'Респонденттер үлесі (%)',
+              data: [78.3, 14.2, 7.5],
+              backgroundColor: [c1, c2, cCtx],
+              borderRadius: 4
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
+            }
+          }
+        });
+      }
+
+      const ctx2 = document.getElementById('chart-impact');
+      if (ctx2) {
+        new Chart(ctx2, {
+          type: 'doughnut',
+          data: {
+            labels: ['Иә, жиі әсер етеді (52,5%)', 'Кейде ойландырады (39,2%)', 'Әсер етпейді (8,3%)'],
+            datasets: [{
+              data: [52.5, 39.2, 8.3],
+              backgroundColor: [c3, c2, cCtx],
+              borderWidth: 2,
+              borderColor: chartBorder
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } }
+            }
+          }
+        });
+      }
+
+      const ctx3 = document.getElementById('chart-qualities');
+      if (ctx3) {
+        new Chart(ctx3, {
+          type: 'bar',
+          data: {
+            labels: ['Барлық құндылықтар (45,0%)', 'Жауапкершілік (21,7%)', 'Заң және әділдік (18,3%)', 'Буллингке қарсылық (15,0%)'],
+            datasets: [{
+              label: 'Үлесі (%)',
+              data: [45.0, 21.7, 18.3, 15.0],
+              backgroundColor: [c1, c3, c2, c4],
+              borderRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, max: 60, ticks: { callback: v => v + '%' } }
+            }
+          }
+        });
+      }
+
+      const ctx4 = document.getElementById('chart-books');
+      if (ctx4) {
+        new Chart(ctx4, {
+          type: 'bar',
+          data: {
+            labels: ['Р.Дж. Паласио «Таңғажайып»', 'Е. Тоқтарбай «Тау құсы»', 'З. Төреханова «Амина»', 'Басқа шығармалар'],
+            datasets: [{
+              label: 'Оқырмандар үлесі (%)',
+              data: [38.3, 27.5, 20.0, 14.2],
+              backgroundColor: [c1, c3, c2, cCtx],
+              borderRadius: 4
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { beginAtZero: true, max: 50, ticks: { callback: v => v + '%' } }
+            }
+          }
+        });
+      }
+    }
+
+    // --- 4. Self-Assessment Checklist & Express Test ---
+    let checkStates = [false, false, false, false];
+    let quizAnswers = { 1: null, 2: null }; // { choice: 'a'|'b'|'c', points: 0|1|2 }
+
+    function toggleCheck(index) {
+      const box = document.getElementById(`chk-${index}`);
+      if (!box) return;
+      checkStates[index] = box.checked;
+      updateAssessmentUI();
+      persistState();
+    }
+
+    function selectQuiz(qNum, choice, pts) {
+      quizAnswers[qNum] = { choice, points: pts };
+      updateAssessmentUI();
+      persistState();
+    }
+
+    function resetAssessment(btn) {
+      if (btn && btn.dataset.armed !== 'true') {
+        btn.dataset.armed = 'true';
+        btn.textContent = 'Растау (қайта басу)';
+        setTimeout(() => {
+          if (btn.dataset.armed === 'true') {
+            btn.dataset.armed = 'false';
+            btn.textContent = 'Тазарту';
+          }
+        }, 3000);
+        return;
+      }
+      if (btn) {
+        btn.dataset.armed = 'false';
+        btn.textContent = 'Тазарту';
+      }
+      checkStates = [false, false, false, false];
+      quizAnswers = { 1: null, 2: null };
+      updateAssessmentUI();
+      persistState();
+    }
+
+    function updateAssessmentUI() {
+      for (let i = 0; i < 4; i++) {
+        const box = document.getElementById(`chk-${i}`);
+        const wrap = document.getElementById(`check-wrap-${i}`);
+        if (box) box.checked = checkStates[i];
+        if (wrap) {
+          if (checkStates[i]) wrap.classList.add('is-checked');
+          else wrap.classList.remove('is-checked');
+        }
+      }
+
+      [1, 2].forEach(qNum => {
+        ['a', 'b', 'c'].forEach(opt => {
+          const btn = document.getElementById(`q${qNum}-${opt}`);
+          if (!btn) return;
+          if (quizAnswers[qNum] && quizAnswers[qNum].choice === opt) {
+            btn.classList.add('is-selected');
+          } else {
+            btn.classList.remove('is-selected');
+          }
+        });
+      });
+
+      const checkScore = checkStates.filter(Boolean).length;
+      const quizScore = (quizAnswers[1] ? quizAnswers[1].points : 0) + (quizAnswers[2] ? quizAnswers[2].points : 0);
+      const total = checkScore + quizScore; // max 8
+      const pct = Math.round((total / 8) * 100);
+
+      const elTotal = document.getElementById('score-total');
+      const elPct = document.getElementById('score-percent-label');
+      const elFill = document.getElementById('score-progress-fill');
+      const elTierTitle = document.getElementById('score-tier-title');
+      const elTierDesc = document.getElementById('score-tier-desc');
+      const elRec = document.getElementById('score-book-rec');
+
+      if (elTotal) elTotal.textContent = String(total);
+      if (elPct) elPct.textContent = `${pct}%`;
+      if (elFill) elFill.style.width = `${pct}%`;
+
+      if (total === 0 && !quizAnswers[1] && !quizAnswers[2]) {
+        if (elTierTitle) elTierTitle.textContent = `Бағалауды бастаңыз`;
+        if (elTierDesc) elTierDesc.textContent = `Чек-лист тармақтары мен экспресс-тест жауаптарын таңдап, жеке бағдарыңызды анықтаңыз.`;
+        if (elRec) elRec.textContent = `Таңдауыңызға қарай сізге ең өзекті туынды осы жерде ұсынылады.`;
+      } else if (total >= 7) {
+        if (elTierTitle) elTierTitle.textContent = `Жоғары азаматтық ұстаным («Толық адам» бағдары)`;
+        if (elTierDesc) elTierDesc.textContent = `Сіз күнделікті өмірде де, цифрлық кеңістікте де әділдік пен жауапкершілікті бірінші орынға қоясыз.`;
+        if (elRec) elRec.textContent = `Ұсыныс: Мәди Айымбетовтің детективті хикаяттары мен Р.Дж. Паласионың «Таңғажайып» туындысын достарыңызбен талқылаңыз.`;
+      } else if (total >= 4) {
+        if (elTierTitle) elTierTitle.textContent = `Қалыптасып келе жатқан моральдық компас`;
+        if (elTierDesc) elTierDesc.textContent = `Сізде негізгі құндылықтар бар, бірақ топтық қысым немесе желідегі таңдау кезінде сенімділікті нығайту маңызды.`;
+        if (elRec) elRec.textContent = `Ұсыныс: Зәуре Төреханованың «Амина» сериясы мен Елдос Тоқтарбайдың «Тау құсы» шығармасын оқып көріңіз.`;
+      } else {
+        if (elTierTitle) elTierTitle.textContent = `Ізденіс пен рефлексия кезеңі`;
+        if (elTierDesc) elTierDesc.textContent = `Ар-ождан мен әділдік таңдауы күнделікті кішкентай қадамдардан басталады. Өзгелерге эмпатия танытудан бастаңыз.`;
+        if (elRec) elRec.textContent = `Ұсыныс: Р.Дж. Паласионың «Таңғажайып» (Wonder) романы инклюзия мен шынайы достықты түсінуге тамаша бастама болады.`;
+      }
+    }
+
+    // --- 5. Telegram Bot CTA Inline Handler (@AdalAzamat_BoL) ---
+    function openBotPrompt(sectionKey) {
+      const labels = {
+        'case-study': `Кейс-стади тапсырмалары мен моральдық дилемма карточкалары`,
+        'library': `Мектеп кітапханасына арналған жинақ, аннотациялар мен буктрейлер нұсқаулығы`,
+        'reading-map': `Үш кезеңді оқылым картасы және жеке оқырман трекері`
+      };
+      const targetEl = document.getElementById(`bot-msg-${sectionKey}`);
+      if (!targetEl) return;
+      targetEl.innerHTML = `Telegram-да <strong>@AdalAzamat_BoL</strong> ботын іздеп, <strong>/start</strong> пәрменін басыңыз — «${labels[sectionKey]}» бөлімі бірден ашылады.`;
+      targetEl.classList.add('is-visible');
+    }
+
+    // --- 6. Persistence via Gemini Notebook Shim API ---
+    async function persistState() {
+      if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== 'function') return;
+      try {
+        await window.notebookAppApi.setAppState({
+          checkStates,
+          quizAnswers,
+          savedReflections
+        });
+      } catch (err) {
+        // Ignore transient sandbox persistence errors
+      }
+    }
+
+    async function loadInitialState() {
+      if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === 'function') {
+        try {
+          const state = await window.notebookAppApi.getAppState();
+          if (state) {
+            if (Array.isArray(state.checkStates) && state.checkStates.length === 4) {
+              checkStates = state.checkStates;
+            }
+            if (state.quizAnswers && typeof state.quizAnswers === 'object') {
+              quizAnswers = state.quizAnswers;
+            }
+            if (state.savedReflections && typeof state.savedReflections === 'object') {
+              savedReflections = state.savedReflections;
+            }
+          }
+        } catch (err) {
+          // Proceed with defaults
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadInitialState();
+      renderPhilosophy();
+      renderCatalog();
+      updateAssessmentUI();
+      initCharts();
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+        window.notebookAppApi.notifyAppReady();
+      }
+    });
+  </script>
+</body>
+</html>
